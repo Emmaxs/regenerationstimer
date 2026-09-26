@@ -1,0 +1,316 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Kostenloser Regenerationstimer mit Timer von 1 Minute bis 24 Stunden und privater, lokaler Fotogalerie.">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://emmaxs.github.io/regenerationstimer/">
+  <meta property="og:title" content="Regenerationstimer mit Fotogalerie">
+  <meta property="og:description" content="Stelle einen Pausentimer ein und speichere deine Timer-Fotos privat in deinem Browser.">
+  <meta property="og:type" content="website">
+  <title>Regenerationstimer mit Fotogalerie</title>
+  <style>
+    :root { color-scheme: light; --ink: #321b3d; --muted: #796d80; --green: #7848c8; --purple: #7848c8; --pale: #fbedf7; --line: #f0ddec; --pink: #d83d91; }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: system-ui, -apple-system, "Segoe UI", sans-serif; color: var(--ink); background: radial-gradient(ellipse at 15% 5%, #fce8f5 0, transparent 35%), radial-gradient(ellipse at 90% 30%, #eee7ff 0, transparent 35%), #fffaff; }
+    header { display: flex; justify-content: space-between; align-items: center; padding: 22px max(6vw, 24px); border-bottom: 1px solid var(--line); }
+    .brand { font-weight: 750; letter-spacing: -.03em; }
+    nav a { margin-left: 24px; color: var(--muted); text-decoration: none; font-size: .95rem; }
+    nav a:hover { color: var(--pink); }
+    main { min-height: 78vh; display: grid; place-items: center; padding: 54px 24px; }
+    .hero { width: min(600px, 100%); padding: clamp(26px, 6vw, 52px); text-align: center; background: #ffffffed; border: 1px solid var(--line); border-radius: 24px; box-shadow: 0 18px 55px #7848c81c; transition: width .2s, padding .2s; }
+    .tag { display: inline-block; padding: 8px 14px; border-radius: 99px; background: var(--pale); color: var(--pink); font-size: .9rem; font-weight: 650; }
+    h1 { margin: 20px 0 10px; font-size: clamp(2rem, 7vw, 3.2rem); line-height: 1.08; letter-spacing: -.055em; }
+    .intro { margin: 0 auto; color: var(--muted); line-height: 1.65; }
+    .picker { margin: 30px auto 0; max-width: 360px; text-align: left; }
+    .picker label { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 12px; font-weight: 650; }
+    #durationLabel { color: var(--purple, #7848c8); }
+    input[type="range"] { width: 100%; accent-color: var(--pink); cursor: pointer; }
+    .range-hints { display: flex; justify-content: space-between; color: var(--muted); font-size: .83rem; }
+    .minutes-input { width: 100%; margin-top: 14px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; color: var(--ink); font: inherit; }
+    .clock { margin: 25px 0 0; font-size: clamp(3.5rem, 15vw, 5.2rem); font-variant-numeric: tabular-nums; font-weight: 750; letter-spacing: -.06em; }
+    .status { min-height: 1.5em; margin: 2px 0 0; color: var(--muted); }
+    button, .photo-button { display: inline-block; margin-top: 22px; padding: 13px 22px; border: 0; border-radius: 10px; background: linear-gradient(120deg, var(--pink), var(--green)); color: white; font: inherit; font-weight: 650; text-decoration: none; cursor: pointer; box-shadow: 0 8px 20px #7848c833; }
+    button:hover, .photo-button:hover { filter: brightness(.94); }
+    button:disabled { opacity: .55; cursor: not-allowed; }
+    .secondary, .mini-toggle { margin-left: 8px; background: #f3eafa; color: var(--ink); box-shadow: none; }
+    .secondary:hover, .mini-toggle:hover { background: #eadcf5; }
+    .mini-toggle { margin: 0 0 24px; padding: 9px 13px; color: var(--green); }
+    .photo-area { margin-top: 24px; padding-top: 22px; border-top: 1px solid var(--line); }
+    .photo-area[hidden], .picker[hidden], #timerActions[hidden] { display: none; }
+    .photo-area p { margin: 0; line-height: 1.55; }
+    #photoInput { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); }
+    #photoPreview { display: block; max-width: 100%; max-height: 280px; margin: 18px auto 0; border-radius: 14px; }
+    #photoDone { color: var(--green); font-weight: 650; }
+    .gallery { width: min(900px, calc(100% - 32px)); margin: 12px auto 48px; padding: 28px; border: 1px solid var(--line); border-radius: 22px; background: #ffffffed; box-shadow: 0 12px 38px #7848c812; }
+    .gallery h2 { margin: 0 0 8px; }
+    .gallery-intro, .empty-gallery { color: var(--muted); }
+    .gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 18px; margin-top: 20px; }
+    .gallery-card { overflow: hidden; border: 1px solid var(--line); border-radius: 16px; background: #fffaff; }
+    .gallery-card img { display: block; width: 100%; height: 190px; object-fit: cover; }
+    .gallery-card-info { padding: 14px; font-size: .92rem; line-height: 1.5; }
+    .gallery-card-info p { margin: 3px 0; }
+    footer { padding: 24px; text-align: center; color: var(--muted); font-size: .9rem; border-top: 1px solid var(--line); }
+    body.mini-mode { background: transparent; }
+    body.mini-mode header, body.mini-mode footer { display: none; }
+    body.mini-mode main { min-height: 0; display: block; padding: 0; }
+    body.mini-mode .hero { position: fixed; right: 20px; bottom: 20px; z-index: 5; width: min(340px, calc(100vw - 24px)); padding: 20px; border-radius: 20px; box-shadow: 0 12px 44px #44204d35; }
+    body.mini-mode .hero > .tag, body.mini-mode h1, body.mini-mode .intro { display: none; }
+    body.mini-mode .mini-toggle { margin-bottom: 2px; }
+    body.mini-mode .picker { margin-top: 16px; }
+    body.mini-mode .clock { margin-top: 8px; font-size: 3rem; }
+    body.mini-mode .photo-area { margin-top: 14px; padding-top: 14px; }
+    body.awaiting-photo header, body.awaiting-photo footer, body.awaiting-photo .gallery { display: none; }
+    body.awaiting-photo #miniToggle { display: none; }
+    @media (max-width: 520px) { header { align-items: flex-start; gap: 12px; flex-direction: column; } nav a { margin: 0 18px 0 0; } main { min-height: 70vh; padding: 32px 16px; } .secondary { margin-left: 4px; } }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">Regenerationstimer</div>
+    <nav aria-label="Hauptnavigation">
+      <a href="#start">Timer</a>
+      <a href="#galerie">Galerie</a>
+    </nav>
+  </header>
+  <main id="start">
+    <section class="hero">
+      <button class="mini-toggle" id="miniToggle" type="button" aria-pressed="false">▣ Mini-Fenster anzeigen</button>
+      <span class="tag">Deine Pause, ganz in Ruhe</span>
+      <h1>Zeit zum Regenerieren</h1>
+      <p class="intro">Wähle eine Dauer zwischen 1 Minute und 24 Stunden. Wenn die Zeit vorbei ist, erinnert dich die Seite an ein Foto.</p>
+      <div class="picker" id="picker">
+        <label for="durationMinutes"><span>Timer-Dauer</span><span id="durationLabel">30 Minuten</span></label>
+        <input id="duration" type="range" min="1" max="1440" step="1" value="30" aria-label="Dauer als Schieberegler">
+        <div class="range-hints"><span>1 Min.</span><span>24 Std.</span></div>
+        <input class="minutes-input" id="durationMinutes" type="number" min="1" max="1440" value="30" inputmode="numeric" aria-label="Dauer in Minuten (1 bis 1440)">
+        <div class="range-hints"><span>Minuten eingeben (1–1440)</span></div>
+      </div>
+      <div class="clock" id="clock" aria-live="off">00:30:00</div>
+      <p class="status" id="status" aria-live="polite">Bereit, wenn du es bist.</p>
+      <div id="timerActions">
+        <button id="startButton" type="button">Timer starten</button>
+        <button id="stopButton" class="secondary" type="button" hidden>Abbrechen</button>
+      </div>
+      <section class="photo-area" id="photoArea" hidden>
+        <p><strong>Die Zeit ist um!</strong><br>Mach ein Foto oder wähle eines von deinem Gerät aus.</p>
+        <label class="photo-button" for="photoInput">Foto aufnehmen</label>
+        <input id="photoInput" type="file" accept="image/*" capture="environment">
+        <img id="photoPreview" alt="Dein aufgenommenes Foto" hidden>
+        <p id="photoDone" aria-live="polite"></p>
+        <button id="againButton" class="secondary" type="button">Neuen Timer einstellen</button>
+      </section>
+    </section>
+  </main>
+  <section class="gallery" id="galerie" aria-labelledby="galleryTitle">
+    <h2 id="galleryTitle">Galerie</h2>
+    <p class="gallery-intro">Hier erscheinen deine Timer-Fotos mit Datum und Uhrzeit. Sie werden nach 30 Tagen gelöscht.</p>
+    <p class="empty-gallery" id="emptyGallery">Noch keine Fotos gespeichert.</p>
+    <div class="gallery-grid" id="galleryGrid"></div>
+  </section>
+  <footer id="kontakt">Fotos werden nur in diesem Browser auf diesem Gerät gespeichert. · © <span id="year"></span></footer>
+  <script>
+    const durationInput = document.getElementById('duration');
+    const durationMinutes = document.getElementById('durationMinutes');
+    const durationLabel = document.getElementById('durationLabel');
+    const clock = document.getElementById('clock');
+    const statusText = document.getElementById('status');
+    const picker = document.getElementById('picker');
+    const startButton = document.getElementById('startButton');
+    const stopButton = document.getElementById('stopButton');
+    const photoArea = document.getElementById('photoArea');
+    const photoInput = document.getElementById('photoInput');
+    let endTime = Number(localStorage.getItem('regenTimerEnd')) || null;
+    let tickHandle;
+    const galleryGrid = document.getElementById('galleryGrid');
+    const dbReady = new Promise((resolve, reject) => {
+      const request = indexedDB.open('regenerationTimerGallery', 1);
+      request.onupgradeneeded = () => request.result.createObjectStore('photos', { keyPath: 'id' });
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+    function dbRequest(mode, action) {
+      return dbReady.then(db => new Promise((resolve, reject) => {
+        const tx = db.transaction('photos', mode);
+        const req = action(tx.objectStore('photos'));
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+      }));
+    }
+    function dateTime(value) {
+      return new Intl.DateTimeFormat('de-DE', { dateStyle: 'full', timeStyle: 'short' }).format(new Date(value));
+    }
+    async function renderGallery() {
+      try {
+        const rows = await dbRequest('readonly', store => store.getAll());
+        const cutoff = Date.now() - 30 * 24 * 60 * 60 * 1000;
+        const photos = rows.filter(item => item.savedAt > cutoff).sort((a, b) => b.savedAt - a.savedAt);
+        for (const old of rows.filter(item => item.savedAt <= cutoff)) {
+          await dbRequest('readwrite', store => store.delete(old.id));
+        }
+        galleryGrid.replaceChildren();
+        document.getElementById('emptyGallery').hidden = photos.length > 0;
+        for (const photo of photos) {
+          const card = document.createElement('article');
+          card.className = 'gallery-card';
+          const img = document.createElement('img');
+          img.src = URL.createObjectURL(photo.blob);
+          img.alt = `Timer-Foto vom ${dateTime(photo.photoAt)}`;
+          const info = document.createElement('div');
+          info.className = 'gallery-card-info';
+          const captured = document.createElement('p');
+          captured.innerHTML = `<strong>Foto aufgenommen:</strong><br>${dateTime(photo.photoAt)}`;
+          const timer = document.createElement('p');
+          timer.innerHTML = `<strong>Timer:</strong> ${formatDuration(photo.durationMinutes)}`;
+          const ended = document.createElement('p');
+          ended.innerHTML = `<strong>Timer abgelaufen:</strong><br>${dateTime(photo.timerEndedAt)}`;
+          info.append(captured, timer, ended);
+          card.append(img, info);
+          galleryGrid.append(card);
+        }
+      } catch (error) {
+        document.getElementById('emptyGallery').textContent = 'Die Galerie konnte in diesem Browser nicht geöffnet werden.';
+      }
+    }
+
+    function formatDuration(minutes) {
+      if (minutes < 60) return `${minutes} ${minutes === 1 ? 'Minute' : 'Minuten'}`;
+      const hours = Math.floor(minutes / 60);
+      const rest = minutes % 60;
+      return rest ? `${hours} Std. ${rest} Min.` : `${hours} ${hours === 1 ? 'Stunde' : 'Stunden'}`;
+    }
+    function showTime(ms) {
+      const total = Math.max(0, Math.ceil(ms / 1000));
+      const hours = Math.floor(total / 3600);
+      const mins = Math.floor((total % 3600) / 60);
+      const secs = total % 60;
+      clock.textContent = [hours, mins, secs].map(n => String(n).padStart(2, '0')).join(':');
+    }
+    function finishTimer() {
+      clearInterval(tickHandle);
+      const savedPending = JSON.parse(localStorage.getItem('regenPhotoPending') || 'null');
+      const timerEndedAt = savedPending?.timerEndedAt || endTime || Date.now();
+      const timerStartedAt = savedPending?.timerStartedAt || Number(localStorage.getItem('regenTimerStarted')) || timerEndedAt;
+      const timerDuration = savedPending?.durationMinutes || Math.round((timerEndedAt - timerStartedAt) / 60000);
+      localStorage.setItem('regenPhotoPending', JSON.stringify({ timerStartedAt, timerEndedAt, durationMinutes: timerDuration }));
+      endTime = null;
+      localStorage.removeItem('regenTimerEnd');
+      showTime(0);
+      picker.hidden = true;
+      startButton.hidden = true;
+      stopButton.hidden = true;
+      statusText.textContent = 'Bitte mach jetzt dein Foto.';
+      document.body.classList.add('awaiting-photo');
+      photoArea.hidden = false;
+    }
+    function tick() {
+      const remaining = endTime - Date.now();
+      if (remaining <= 0) return finishTimer();
+      showTime(remaining);
+    }
+    function startTimer() {
+      endTime = Date.now() + Number(durationMinutes.value) * 60 * 1000;
+      localStorage.setItem('regenTimerStarted', String(Date.now()));
+      localStorage.removeItem('regenPhotoPending');
+      document.body.classList.remove('awaiting-photo');
+      localStorage.setItem('regenTimerEnd', String(endTime));
+      picker.hidden = true;
+      photoArea.hidden = true;
+      startButton.hidden = true;
+      stopButton.hidden = false;
+      statusText.textContent = 'Timer läuft. Gönn dir eine Pause.';
+      tick();
+      clearInterval(tickHandle);
+      tickHandle = setInterval(tick, 250);
+    }
+    durationInput.addEventListener('input', () => {
+      durationLabel.textContent = formatDuration(Number(durationInput.value));
+      durationMinutes.value = durationInput.value;
+      showTime(Number(durationInput.value) * 60 * 1000);
+    });
+    durationMinutes.addEventListener('input', () => {
+      const minutes = Math.min(1440, Math.max(1, Number(durationMinutes.value) || 1));
+      durationInput.value = minutes;
+      durationLabel.textContent = formatDuration(minutes);
+      showTime(minutes * 60 * 1000);
+    });
+    durationMinutes.addEventListener('change', () => {
+      durationMinutes.value = Math.min(1440, Math.max(1, Number(durationMinutes.value) || 1));
+      durationInput.value = durationMinutes.value;
+    });
+    document.getElementById('miniToggle').addEventListener('click', event => {
+      const mini = document.body.classList.toggle('mini-mode');
+      event.currentTarget.textContent = mini ? '↗ Groß anzeigen' : '▣ Mini-Fenster anzeigen';
+      event.currentTarget.setAttribute('aria-pressed', String(mini));
+      localStorage.setItem('regenMiniMode', String(mini));
+    });
+    startButton.addEventListener('click', startTimer);
+    stopButton.addEventListener('click', () => {
+      clearInterval(tickHandle);
+      endTime = null;
+      localStorage.removeItem('regenTimerEnd');
+      picker.hidden = false;
+      startButton.hidden = false;
+      stopButton.hidden = true;
+      statusText.textContent = 'Timer abgebrochen. Du kannst eine neue Zeit wählen.';
+      showTime(Number(durationInput.value) * 60 * 1000);
+    });
+    document.getElementById('againButton').addEventListener('click', () => {
+      localStorage.removeItem('regenPhotoPending');
+      document.body.classList.remove('awaiting-photo');
+      photoArea.hidden = true;
+      picker.hidden = false;
+      startButton.hidden = false;
+      statusText.textContent = 'Bereit, wenn du es bist.';
+      showTime(Number(durationInput.value) * 60 * 1000);
+    });
+    photoInput.addEventListener('change', async () => {
+      const photo = photoInput.files && photoInput.files[0];
+      if (!photo) return;
+      const pending = JSON.parse(localStorage.getItem('regenPhotoPending') || '{}');
+      const photoAt = Date.now();
+      const row = {
+        id: globalThis.crypto?.randomUUID ? crypto.randomUUID() : `${photoAt}-${Math.random().toString(36).slice(2)}`, blob: photo, photoAt, savedAt: photoAt,
+        timerStartedAt: pending.timerStartedAt || photoAt,
+        timerEndedAt: pending.timerEndedAt || photoAt,
+        durationMinutes: pending.durationMinutes || Number(durationMinutes.value)
+      };
+      try {
+        await dbRequest('readwrite', store => store.put(row));
+        localStorage.removeItem('regenPhotoPending');
+        document.body.classList.remove('awaiting-photo');
+        photoInput.value = '';
+        statusText.textContent = 'Foto gespeichert. Du kannst es jetzt in der Galerie ansehen.';
+        document.getElementById('photoDone').textContent = 'Foto gespeichert und in der Galerie abgelegt.';
+        await renderGallery();
+      } catch (error) {
+        document.getElementById('photoDone').textContent = 'Das Foto konnte nicht gespeichert werden. Bitte versuche es noch einmal.';
+      }
+    });
+    document.getElementById('year').textContent = new Date().getFullYear();
+    if (localStorage.getItem('regenMiniMode') === 'true') {
+      document.body.classList.add('mini-mode');
+      const toggle = document.getElementById('miniToggle');
+      toggle.textContent = '↗ Groß anzeigen';
+      toggle.setAttribute('aria-pressed', 'true');
+    }
+    renderGallery();
+    setInterval(renderGallery, 60 * 60 * 1000);
+    if (localStorage.getItem('regenPhotoPending')) {
+      finishTimer();
+    } else if (endTime && endTime > Date.now()) {
+      picker.hidden = true;
+      startButton.hidden = true;
+      stopButton.hidden = false;
+      statusText.textContent = 'Timer läuft. Gönn dir eine Pause.';
+      tick();
+      tickHandle = setInterval(tick, 250);
+    } else if (endTime) {
+      finishTimer();
+    } else {
+      showTime(Number(durationInput.value) * 60 * 1000);
+    }
+  </script>
+</body>
+</html>
