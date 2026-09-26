@@ -1,0 +1,12 @@
+{
+  "id": "./",
+  "name": "Regenerationstimer mit Fotogalerie",
+  "short_name": "Regenerationstimer",
+  "description": "Dein pink-lila Timer mit lokaler Fotogalerie.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#fffaff",
+  "theme_color": "#d83d91",
+  "icons": [{ "src": "./icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }]
+}
